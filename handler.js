@@ -1,18 +1,25 @@
 'use strict';
 
-module.exports.hello = async event => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify(
-      {
-        message: 'Go Serverless v1.0! Your function executed successfully!',
-        input: event,
-      },
-      null,
-      2
-    ),
-  };
+const orderManager = require('./orderManager');
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
+function createResponse(statusCode, message){
+  const response = {
+    statusCode:statusCode,
+    body: JSON.stringify(message)
+  }
+
+  return response;
+}
+
+module.exports.createOrder = async event => {
+
+  const body = JSON.parse(event.body);
+  const order = orderManager.createOrder(body);
+
+  return orderManager.placeNewOrder(order).then(() => {
+    return createResponse(200, order)
+  }).catch(error => {
+    return createResponse(400, error);
+  })
+
 };
